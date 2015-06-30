@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 class UserSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = get_user_model()
-        fields = ('id', 'username', 'password', 'email', 'groups')
+        fields = ('id', 'username', 'password', 'email')
         write_only_fields = ('password',)
         read_only_fields = ('id',)
 
@@ -20,9 +20,3 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
         user.save()
 
         return user
-
-
-class GroupSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = Group
-        fields = ('url', 'name')
