@@ -12,3 +12,8 @@ class TranslationHistorySerializer(serializers.ModelSerializer):
 
     def validate_user(self, value):
         return self.context['request'].user
+
+    def update(self, instance, validated_data):
+        instance.count += 1
+        instance.save()
+        return instance

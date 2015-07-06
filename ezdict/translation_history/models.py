@@ -9,3 +9,11 @@ class TranslationHistory(models.Model):
     count = models.IntegerField(default=1)
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='translation_history')
+
+    def findByUserAndString(self, user, string):
+        try:
+            history = TranslationHistory.objects.get(user__exact=user.id,
+                                                     string__iexact=string)
+        except TranslationHistory.DoesNotExist:
+            history = None
+        return history
