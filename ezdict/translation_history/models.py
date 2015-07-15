@@ -13,7 +13,7 @@ class TranslationHistory(models.Model):
     def findByUserAndString(self, user, string):
         try:
             history = TranslationHistory.objects.get(user__exact=user.id,
-                                                     string__iexact=string)
+                                                     string__exact=string)
         except TranslationHistory.DoesNotExist:
             history = None
         return history

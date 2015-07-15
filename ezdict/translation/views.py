@@ -25,6 +25,7 @@ class TranslationView(APIView):
         string = request.query_params.get('string', None)
         if string is None:
             raise serializers.ValidationError('Parameter "string" is required')
+        string = string.strip().lower()
         history = TranslationHistory().findByUserAndString(request.user, string)
         if history is not None:
             serializer = TranslationHistorySerializer(history, data={'string': history.string}, context={'request': request})
