@@ -1,9 +1,11 @@
 import goslate
 from ezdict.translation_history.models import TranslationHistory
+from ezdict.translation.serializers import TranslationSerializer
 from ezdict.translation_history.serializers import TranslationHistorySerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import serializers
+from rest_framework import status
 
 
 class TranslationView(APIView):
@@ -28,9 +30,19 @@ class TranslationView(APIView):
         string = string.strip().lower()
         history = TranslationHistory().findByUserAndString(request.user, string)
         if history is not None:
-            serializer = TranslationHistorySerializer(history, data={'string': history.string}, context={'request': request})
+            historySerializer = TranslationHistorySerializer(history, data={'string': history.string},
+                                                             context={'request': request})
         else:
-            serializer = TranslationHistorySerializer(data={'string': string}, context={'request': request})
+            historySerializer = TranslationHistorySerializer(data={'string': string}, context={'request': request})
+        historySerializer.is_valid(raise_exception=True)
+        historySerializer.save(user=request.user)
+        translation = gs.translate(string, 'ru')
+        serializer = TranslationSerializer(
+            data={
+                'translation_history': historySerializer.data,
+                'translation': translation
+            },
+            context={'request': request}
+        )
         serializer.is_valid(raise_exception=True)
-        serializer.save(user=request.user)
-        return Response(gs.translate(string, 'ru'))
+        return Response(serializer.data, status=status.HTTP_200_OK)
