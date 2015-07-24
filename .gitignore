@@ -2,6 +2,6 @@ db.sqlite3
 env
 .idea
 *.pyc
-ezdict/settings.py
 gunicorn.conf.py
 static
+ezdict/settings/components/*.prod.py
