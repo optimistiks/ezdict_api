@@ -5,6 +5,7 @@ import os
 if os.environ['DJANGO_SETTINGS_MODULE'] == 'ezdict.settings':
     include(
         'components/settings.py',
+        optional('components/settings.prod.py'),
 
         'components/db.local.py',
         optional('components/db.prod.py'),
