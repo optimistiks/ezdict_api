@@ -5,3 +5,4 @@ env
 gunicorn.conf.py
 static
 ezdict/settings/components/*.prod.py
+ezdict/settings/components/*.local.py
