@@ -6,6 +6,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import serializers
 from rest_framework import status
+from django.utils.translation import ugettext as _
 
 
 class TranslationView(APIView):
@@ -26,7 +27,7 @@ class TranslationView(APIView):
         gs = goslate.Goslate()
         string = request.query_params.get('string', None)
         if string is None:
-            raise serializers.ValidationError('Parameter "string" is required')
+            raise serializers.ValidationError(_('Parameter %(param)s is required.') % {'param': 'string'})
         string = string.strip().lower()
         history = TranslationHistory().findByUserAndString(request.user, string)
         if history is not None:
