@@ -1,7 +1,6 @@
 import goslate
 import requests
 from ezdict.translation_history.models import TranslationHistory
-from ezdict.translation.serializers import TranslationSerializer
 from ezdict.translation_history.serializers import TranslationHistorySerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -59,13 +58,10 @@ class TranslationView(APIView):
             (dictUrl + '&lang=%(dictDir)s&text=%(text)s') % {'yaDictKey': YA_DICT_KEY, 'dictDir': dictDir,
                                                              'text': string})
 
-        serializer = TranslationSerializer(
-            data={
-                'translation_history': historySerializer.data,
-                'translation': translation,
-                'ya_dict': dict.json()
-            },
-            context={'request': request}
-        )
-        serializer.is_valid(raise_exception=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        response = {
+            'translation_history': historySerializer.data,
+            'translation': translation,
+            'ya_dict': dict.json()
+        }
+
+        return Response(response, status=status.HTTP_200_OK)
