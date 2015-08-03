@@ -35,7 +35,7 @@ class TranslationView(APIView):
     def get(self, request):
         """
         ---
-        parameters:initHistorySerializer
+        parameters:
             - name: string
               description: a string to translate
               required: true
