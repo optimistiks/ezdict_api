@@ -8,6 +8,14 @@ class WordToLearn(models.Model):
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='word_to_learn')
 
+    def findByUserAndString(self, user, string):
+        try:
+            word = WordToLearn.objects.get(user__exact=user.id,
+                                           string__exact=string)
+        except WordToLearn.DoesNotExist:
+            word = None
+        return word
+
 
 class WordIsLearned(models.Model):
     created = models.DateTimeField(auto_now_add=True)
@@ -15,3 +23,10 @@ class WordIsLearned(models.Model):
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='word_is_learned')
 
+    def findByUserAndString(self, user, string):
+        try:
+            word = WordIsLearned.objects.get(user__exact=user.id,
+                                             string__exact=string)
+        except WordIsLearned.DoesNotExist:
+            word = None
+        return word
