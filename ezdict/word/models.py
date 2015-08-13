@@ -8,6 +8,9 @@ class WordToLearn(models.Model):
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='word_to_learn')
 
+    class Meta:
+        unique_together = ('user', 'string')
+
     def findByUserAndString(self, user, string):
         try:
             word = WordToLearn.objects.get(user__exact=user.id,

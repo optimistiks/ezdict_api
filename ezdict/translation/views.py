@@ -1,7 +1,9 @@
 import goslate
 import requests
 from ezdict.translation_history.models import TranslationHistory
+from ezdict.word.models import WordToLearn
 from ezdict.translation_history.serializers import TranslationHistorySerializer
+from ezdict.word.serializers import WordToLearnSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import serializers
@@ -32,6 +34,13 @@ class TranslationView(APIView):
             historySerializer = TranslationHistorySerializer(data={'string': string}, context={'request': request})
         return historySerializer
 
+    def initLearningSerializer(self, request, string):
+        learningSerializer = None
+        learning = WordToLearn().findByUserAndString(request.user, string)
+        if learning is not None:
+            learningSerializer = WordToLearnSerializer(learning, context={'request': request})
+        return learningSerializer
+
     def get(self, request):
         """
         ---
@@ -58,10 +67,15 @@ class TranslationView(APIView):
             (dictUrl + '&lang=%(dictDir)s&text=%(text)s') % {'yaDictKey': YA_DICT_KEY, 'dictDir': dictDir,
                                                              'text': string})
 
+        learningSerializer = self.initLearningSerializer(request, string)
+
         response = {
             'translation_history': historySerializer.data,
             'translation': translation,
             'ya_dict': dict.json()
         }
+
+        if learningSerializer is not None:
+            response['learning'] = learningSerializer.data
 
         return Response(response, status=status.HTTP_200_OK)

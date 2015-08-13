@@ -34,3 +34,4 @@ class TranslationTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertHistory(string, 3)
 
+
