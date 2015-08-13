@@ -1,6 +1,6 @@
 from django.conf.urls import url, include
 from rest_framework import routers
-from ezdict.translation.views import TranslationView
+from ezdict.translation.views import TranslationView, LanguageView
 from ezdict.translation_history.views import TranslationHistoryViewSet
 from ezdict.word.views import WordToLearnViewSet, WordIsLearnedViewSet
 
@@ -16,5 +16,6 @@ urlpatterns = [
     url(r'^docs/', include('rest_framework_swagger.urls')),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^user/', include('djoser.urls')),
-    url(r'^translation/', TranslationView.as_view(), name='translation'),
+    url(r'^translation/$', TranslationView.as_view(), name='translation'),
+    url(r'^language/$', LanguageView.as_view(), name='language'),
 ]

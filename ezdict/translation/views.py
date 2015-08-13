@@ -79,3 +79,12 @@ class TranslationView(APIView):
             response['learning'] = learningSerializer.data
 
         return Response(response, status=status.HTTP_200_OK)
+
+
+class LanguageView(APIView):
+    """
+    View to get available languages
+    """
+
+    def get(self, request):
+        return Response(goslate.Goslate().get_languages(), status=status.HTTP_200_OK)
