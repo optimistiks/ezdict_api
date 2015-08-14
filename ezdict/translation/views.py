@@ -25,6 +25,13 @@ class TranslationView(APIView):
         string = string.strip().lower()
         return string
 
+    def getLang(self, request):
+        lang = request.query_params.get('lang', None)
+        if lang is None:
+            raise serializers.ValidationError(_('Parameter %(param)s is required.') % {'param': 'lang'})
+        lang = lang.strip().lower()
+        return lang
+
     def initHistorySerializer(self, request, string):
         history = TranslationHistory().findByUserAndString(request.user, string)
         if history is not None:
@@ -50,8 +57,14 @@ class TranslationView(APIView):
               required: true
               type: string
               paramType: query
+            - name: lang
+              description: a target language
+              required: true
+              type: string
+              paramType: query
         """
         string = self.getString(request)
+        targetLang = self.getLang(request)
 
         historySerializer = self.initHistorySerializer(request, string)
         historySerializer.is_valid(raise_exception=True)
@@ -59,9 +72,9 @@ class TranslationView(APIView):
 
         gs = goslate.Goslate()
         sourceLang = gs.detect(string)
-        translation = gs.translate(string, 'ru')
+        translation = gs.translate(string, targetLang, sourceLang)
 
-        dictDir = sourceLang + '-ru'
+        dictDir = sourceLang + '-' + targetLang
         dictUrl = 'https://dictionary.yandex.net/api/v1/dicservice.json/lookup?key=%(yaDictKey)s'
         dict = requests.get(
             (dictUrl + '&lang=%(dictDir)s&text=%(text)s') % {'yaDictKey': YA_DICT_KEY, 'dictDir': dictDir,
