@@ -1,5 +1,6 @@
 import goslate
 import requests
+import operator
 from ezdict.translation_history.models import TranslationHistory
 from ezdict.word.models import WordToLearn
 from ezdict.translation_history.serializers import TranslationHistorySerializer
@@ -100,4 +101,8 @@ class LanguageView(APIView):
     """
 
     def get(self, request):
-        return Response(goslate.Goslate().get_languages(), status=status.HTTP_200_OK)
+        keys = ['code', 'name']
+        languages = goslate.Goslate().get_languages()
+        sortedLanguages = sorted(languages.items(), key=operator.itemgetter(1))
+        listOfDicts = [dict(zip(keys, row)) for row in sortedLanguages]
+        return Response(listOfDicts, status=status.HTTP_200_OK)
