@@ -3,6 +3,7 @@ from rest_framework import routers
 from ezdict.translation.views import TranslationView, LanguageView
 from ezdict.translation_history.views import TranslationHistoryViewSet
 from ezdict.word.views import WordToLearnViewSet, WordIsLearnedViewSet
+from ezdict.user_profile.views import UserProfileView
 
 router = routers.DefaultRouter()
 router.register(r'translation_history', TranslationHistoryViewSet)
@@ -16,6 +17,7 @@ urlpatterns = [
     url(r'^docs/', include('rest_framework_swagger.urls')),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^user/', include('djoser.urls')),
+    url(r'^profile/$', UserProfileView.as_view(), name='user_profile'),
     url(r'^translation/$', TranslationView.as_view(), name='translation'),
     url(r'^language/$', LanguageView.as_view(), name='language'),
 ]

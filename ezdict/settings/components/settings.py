@@ -45,7 +45,8 @@ INSTALLED_APPS = (
     'ezdict.ezdict_api',
     'ezdict.translation',
     'ezdict.translation_history',
-    'ezdict.word'
+    'ezdict.word',
+    'ezdict.user_profile'
 )
 
 MIDDLEWARE_CLASSES = (

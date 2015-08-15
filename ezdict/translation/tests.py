@@ -22,16 +22,14 @@ class TranslationTests(APITestCase):
         stringWhiteSpace = ' hello '
         stringMixedCase = 'hElLo'
 
-        response = self.client.get(url, {'string': string})
+        response = self.client.get(url, {'string': string, 'lang': 'ru'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertHistory(string, 1)
 
-        response = self.client.get(url, {'string': stringWhiteSpace})
+        response = self.client.get(url, {'string': stringWhiteSpace, 'lang': 'ru'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertHistory(string, 2)
 
-        response = self.client.get(url, {'string': stringMixedCase})
+        response = self.client.get(url, {'string': stringMixedCase, 'lang': 'ru'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertHistory(string, 3)
-
-
