@@ -2,10 +2,12 @@ from django.conf.urls import url, include
 from rest_framework import routers
 from ezdict.translation.views import TranslationView, LanguageView
 from ezdict.translation_history.views import TranslationHistoryViewSet
+from ezdict.card.views import CardViewSet
 from ezdict.user_profile.views import UserProfileView
 
 router = routers.DefaultRouter()
 router.register(r'translation_history', TranslationHistoryViewSet)
+router.register(r'card', CardViewSet)
 
 # Wire up our API using automatic URL routing.
 # Additionally, we include login URLs for the browsable API.
