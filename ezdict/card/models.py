@@ -11,7 +11,7 @@ class Card(models.Model):
 
     def findByUserAndText(self, user, text):
         try:
-            card = self.objects.get(user__exact=user.id,
+            card = Card.objects.get(user__exact=user.id,
                                     text__exact=text)
         except self.DoesNotExist:
             card = None
