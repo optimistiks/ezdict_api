@@ -46,6 +46,7 @@ INSTALLED_APPS = (
     'ezdict.translation',
     'ezdict.translation_history',
     'ezdict.word',
+    'ezdict.card',
     'ezdict.user_profile'
 )
 
