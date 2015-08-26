@@ -7,5 +7,4 @@ class TranslationHistoryConfig(AppConfig):
     verbose_name = 'Translation History'
 
     def ready(self):
-        # import signal handlers
-        import ezdict.translation_history.handlers
+        pass
