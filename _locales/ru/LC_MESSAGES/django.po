@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-08-13 05:20+0000\n"
+"POT-Creation-Date: 2015-08-30 17:25+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,6 +18,10 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+#: ezdict/card/serializers.py:14
+msgid "Card for this text already exists."
+msgstr "Карточка для этого слова уже существует."
 
 #: ezdict/ezdict_api/models.py:12
 msgid "username"
@@ -84,14 +88,13 @@ msgstr "пользователь"
 msgid "users"
 msgstr "пользователи"
 
-#: ezdict/translation/views.py:22
+#: ezdict/translation/views.py:25 ezdict/translation/views.py:32
 #, python-format
 msgid "Parameter %(param)s is required."
 msgstr "Параметр %(param)s обязателен."
 
-#: ezdict/word/models.py:16
-msgid "You already learn this word"
-msgstr "Это слово уже добавлено в изучаемые"
+#~ msgid "You already learn this word"
+#~ msgstr "Это слово уже добавлено в изучаемые"
 
 #~ msgid "english %(test)s"
 #~ msgstr "русский %(test)s"
