@@ -1,5 +1,7 @@
 from django.db import models
 from django.conf import settings
+from django.core import serializers
+import json
 
 
 class Card(models.Model):
@@ -19,6 +21,12 @@ class Card(models.Model):
         except self.DoesNotExist:
             card = None
         return card
+
+    def __str__(self):
+        data = serializers.serialize('json', [self, ])
+        struct = json.loads(data)
+        data = json.dumps(struct[0])
+        return data
 
 
 class CardMeaning(models.Model):
