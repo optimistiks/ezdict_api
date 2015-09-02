@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-08-30 17:25+0000\n"
+"POT-Creation-Date: 2015-09-02 05:52+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -22,6 +22,10 @@ msgstr ""
 #: ezdict/card/serializers.py:14
 msgid "Card for this text already exists."
 msgstr "Карточка для этого слова уже существует."
+
+#: ezdict/card/serializers.py:31
+msgid "This meaning already exists."
+msgstr "Такое значение уже существует."
 
 #: ezdict/ezdict_api/models.py:12
 msgid "username"
