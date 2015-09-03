@@ -2,6 +2,10 @@ from rest_framework import serializers
 from models import Card, CardMeaning
 from rest_framework.validators import UniqueTogetherValidator
 from django.utils.translation import ugettext as _
+from rest_framework_bulk import (
+    BulkListSerializer,
+    BulkSerializerMixin,
+)
 
 
 class CardSerializer(serializers.ModelSerializer):
@@ -21,9 +25,10 @@ class CardSerializer(serializers.ModelSerializer):
         return self.context['request'].user
 
 
-class CardMeaningSerializer(serializers.ModelSerializer):
+class CardMeaningSerializer(BulkSerializerMixin, serializers.ModelSerializer):
     class Meta:
         model = CardMeaning
+        list_serializer_class = BulkListSerializer
         validators = [
             UniqueTogetherValidator(
                 queryset=CardMeaning.objects.all(),

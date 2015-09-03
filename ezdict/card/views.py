@@ -1,7 +1,11 @@
 from models import Card, CardMeaning
 from serializers import CardSerializer, CardMeaningSerializer
 from rest_framework.viewsets import ModelViewSet
-
+from rest_framework_bulk import (
+    BulkModelViewSet,
+)
+from django_filters import FilterSet
+from ezdict.ezdict_api.filters import ListFilter
 
 class CardViewSet(ModelViewSet):
     """
@@ -14,7 +18,15 @@ class CardViewSet(ModelViewSet):
     ordering = ('-created',)
 
 
-class CardMeaningViewSet(ModelViewSet):
+class CardMeaningFilterSet(FilterSet):
+    id = ListFilter(name='id')
+
+    class Meta:
+        model = CardMeaning
+        fields = ['id']
+
+
+class CardMeaningViewSet(BulkModelViewSet):
     """
     A ViewSet for working with card meanings.
     card -- a card to search meanings for
@@ -22,4 +34,9 @@ class CardMeaningViewSet(ModelViewSet):
     queryset = CardMeaning.objects.all()
     serializer_class = CardMeaningSerializer
     filter_fields = ('card',)
+    filter_class = CardMeaningFilterSet
     ordering = ('-created',)
+
+    def allow_bulk_destroy(self, qs, filtered):
+        modelId = self.request.query_params.get('id', None)
+        return modelId is not None

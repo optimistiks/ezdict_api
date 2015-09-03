@@ -1,11 +1,12 @@
 from django.conf.urls import url, include
-from rest_framework import routers
 from ezdict.translation.views import TranslationView, LanguageView
 from ezdict.translation_history.views import TranslationHistoryViewSet
 from ezdict.card.views import CardViewSet, CardMeaningViewSet
 from ezdict.user_profile.views import UserProfileView
+from rest_framework_bulk.routes import BulkRouter
 
-router = routers.DefaultRouter()
+
+router = BulkRouter()
 router.register(r'translation_history', TranslationHistoryViewSet)
 router.register(r'card', CardViewSet)
 router.register(r'card_meaning', CardMeaningViewSet)
