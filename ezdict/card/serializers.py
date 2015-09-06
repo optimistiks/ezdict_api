@@ -6,6 +6,7 @@ from rest_framework_bulk import (
     BulkListSerializer,
     BulkSerializerMixin,
 )
+from rest_framework.exceptions import PermissionDenied
 
 
 class CardSerializer(serializers.ModelSerializer):
@@ -38,6 +39,12 @@ class CardMeaningSerializer(BulkSerializerMixin, serializers.ModelSerializer):
         ]
 
     user = serializers.PrimaryKeyRelatedField(read_only=True, default=None)
+    card = serializers.PrimaryKeyRelatedField(queryset=Card.objects.all(), default=None)
 
     def validate_user(self, value):
         return self.context['request'].user
+
+    def validate_card(self, value):
+        if value.user.id != self.context['request'].user.id:
+            raise PermissionDenied()
+        return value

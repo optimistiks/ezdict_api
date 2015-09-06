@@ -23,7 +23,7 @@ class CardMeaningFilterSet(FilterSet):
 
     class Meta:
         model = CardMeaning
-        fields = ['id']
+        fields = ['id', 'card']
 
 
 class CardMeaningViewSet(BulkModelViewSet):
@@ -33,7 +33,6 @@ class CardMeaningViewSet(BulkModelViewSet):
     """
     queryset = CardMeaning.objects.all()
     serializer_class = CardMeaningSerializer
-    filter_fields = ('card',)
     filter_class = CardMeaningFilterSet
     ordering = ('-created',)
 
