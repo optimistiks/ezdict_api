@@ -33,8 +33,8 @@ class CardMeaning(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     text = models.CharField(max_length=255)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='card_meaning')
-    card = models.ForeignKey(Card, related_name='card_meaning')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='card_meanings')
+    card = models.ForeignKey(Card, related_name='card_meanings')
 
     class Meta:
         unique_together = ('card', 'text')

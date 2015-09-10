@@ -9,23 +9,6 @@ from rest_framework_bulk import (
 from rest_framework.exceptions import PermissionDenied
 
 
-class CardSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Card
-        validators = [
-            UniqueTogetherValidator(
-                queryset=Card.objects.all(),
-                fields=('user', 'text'),
-                message=_('Card for this text already exists.')
-            )
-        ]
-
-    user = serializers.PrimaryKeyRelatedField(read_only=True, default=None)
-
-    def validate_user(self, value):
-        return self.context['request'].user
-
-
 class CardMeaningSerializer(BulkSerializerMixin, serializers.ModelSerializer):
     class Meta:
         model = CardMeaning
@@ -48,3 +31,21 @@ class CardMeaningSerializer(BulkSerializerMixin, serializers.ModelSerializer):
         if value.user.id != self.context['request'].user.id:
             raise PermissionDenied()
         return value
+
+
+class CardSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Card
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Card.objects.all(),
+                fields=('user', 'text'),
+                message=_('Card for this text already exists.')
+            )
+        ]
+
+    user = serializers.PrimaryKeyRelatedField(read_only=True, default=None)
+    card_meanings = CardMeaningSerializer(read_only=True, many=True)
+
+    def validate_user(self, value):
+        return self.context['request'].user
