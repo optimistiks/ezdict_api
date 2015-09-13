@@ -46,3 +46,20 @@ class CardMeaning(models.Model):
         except self.DoesNotExist:
             cards = None
         return cards
+
+
+class CardToStudy(models.Model):
+    created = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='card_to_study')
+    card = models.ForeignKey(Card, related_name='card_to_study')
+
+    class Meta:
+        unique_together = ('user', 'card')
+
+    def findByUserAndCard(self, user, card):
+        try:
+            toStudy = CardToStudy.objects.get(user__exact=user.id,
+                                              card__exact=card.id)
+        except self.DoesNotExist:
+            toStudy = None
+        return toStudy
