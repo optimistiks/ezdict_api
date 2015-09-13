@@ -14,13 +14,16 @@ def getFlatMeanings(text, targetLang):
                                                              'text': text})
     yaDict = response.json()
 
-    meanings = [translation]
+    meanings = set()
+    meanings.add(translation.lower())
     if len(yaDict['def']):
         for yaDef in yaDict['def']:
             for yaDefTr in yaDef['tr']:
-                meanings.append(yaDefTr['text'])
+                meaning = yaDefTr['text'].lower()
+                meanings.add(meaning)
                 if 'syn' in yaDefTr:
                     for yaDefTrSyn in yaDefTr['syn']:
-                        meanings.append(yaDefTrSyn['text'])
+                        meaning = yaDefTrSyn['text'].lower()
+                        meanings.add(meaning)
 
     return meanings

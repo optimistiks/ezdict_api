@@ -15,7 +15,7 @@ class CardToStudySerializer(serializers.ModelSerializer):
         validators = [
             UniqueTogetherValidator(
                 queryset=CardToStudy.objects.all(),
-                fields=('card', 'user'),
+                fields=('user', 'card'),
                 message=_('This card is already being studied.')
             )
         ]
@@ -68,8 +68,8 @@ class CardSerializer(serializers.ModelSerializer):
         ]
 
     user = serializers.PrimaryKeyRelatedField(read_only=True, default=None)
-    card_meanings = CardMeaningSerializer(read_only=True, many=True)
-    card_to_study = CardToStudySerializer(read_only=True)
+    meanings = CardMeaningSerializer(read_only=True, many=True)
+    to_study = CardToStudySerializer(read_only=True)
 
     def validate_user(self, value):
         return self.context['request'].user

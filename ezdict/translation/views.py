@@ -117,7 +117,7 @@ class TranslationView(BaseTranslationView):
         return Response(response, status=status.HTTP_200_OK)
 
 
-class FlatMeaningView(BaseTranslationView):
+class SuggestedMeaningView(BaseTranslationView):
     """
     View to get flat representation of text meanings
     """

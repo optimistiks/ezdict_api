@@ -9,7 +9,7 @@ class Card(models.Model):
     updated = models.DateTimeField(auto_now=True)
     text = models.CharField(max_length=255)
     article = models.TextField(blank=True, default='')
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='card')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='cards')
 
     class Meta:
         unique_together = ('user', 'text')
@@ -33,8 +33,8 @@ class CardMeaning(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     text = models.CharField(max_length=255)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='card_meanings')
-    card = models.ForeignKey(Card, related_name='card_meanings')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='meanings')
+    card = models.ForeignKey(Card, related_name='meanings')
 
     class Meta:
         unique_together = ('card', 'text')
@@ -50,8 +50,8 @@ class CardMeaning(models.Model):
 
 class CardToStudy(models.Model):
     created = models.DateTimeField(auto_now_add=True)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='card_to_study')
-    card = models.ForeignKey(Card, related_name='card_to_study')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='to_studies')
+    card = models.OneToOneField(Card, related_name='to_study')
 
     class Meta:
         unique_together = ('user', 'card')

@@ -1,5 +1,5 @@
 from django.conf.urls import url, include
-from ezdict.translation.views import TranslationView, LanguageView, FlatMeaningView
+from ezdict.translation.views import TranslationView, LanguageView, SuggestedMeaningView
 from ezdict.translation_history.views import TranslationHistoryViewSet
 from ezdict.card.views import CardViewSet, CardMeaningViewSet, CardToStudyViewSet
 from ezdict.user_profile.views import UserProfileView
@@ -9,8 +9,8 @@ from rest_framework_bulk.routes import BulkRouter
 router = BulkRouter()
 router.register(r'translation_history', TranslationHistoryViewSet)
 router.register(r'card', CardViewSet)
-router.register(r'card_meaning', CardMeaningViewSet)
-router.register(r'card_to_study', CardToStudyViewSet)
+router.register(r'meaning', CardMeaningViewSet)
+router.register(r'to_study', CardToStudyViewSet)
 
 # Wire up our API using automatic URL routing.
 # Additionally, we include login URLs for the browsable API.
@@ -21,6 +21,6 @@ urlpatterns = [
     url(r'^user/', include('djoser.urls')),
     url(r'^profile/$', UserProfileView.as_view(), name='user_profile'),
     url(r'^translation/$', TranslationView.as_view(), name='translation'),
-    url(r'^flat_meaning/$', FlatMeaningView.as_view(), name='flat_meaning'),
+    url(r'^suggested_meaning/$', SuggestedMeaningView.as_view(), name='flat_meaning'),
     url(r'^language/$', LanguageView.as_view(), name='language'),
 ]
