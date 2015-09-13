@@ -10,11 +10,11 @@ from rest_framework.response import Response
 from rest_framework import serializers
 from rest_framework import status
 from django.utils.translation import ugettext as _
+from flat_meanings import getFlatMeanings
+from translators import YA_DICT_KEY, YA_DICT_URL
 
-YA_DICT_KEY = 'dict.1.1.20131027T115553Z.881398786442095e.51bb0420197e3eecd21c1dff059a2636b3976867'
 
-
-class TranslationView(APIView):
+class BaseTranslationView(APIView):
     """
     View to translate strings
     """
@@ -32,6 +32,29 @@ class TranslationView(APIView):
             raise serializers.ValidationError(_('Parameter %(param)s is required.') % {'param': 'lang'})
         lang = lang.strip().lower()
         return lang
+
+    def get(self, request):
+        """
+        ---
+        parameters:
+            - name: string
+              description: a string to translate
+              required: true
+              type: string
+              paramType: query
+            - name: lang
+              description: a target language
+              required: true
+              type: string
+              paramType: query
+        """
+        pass
+
+
+class TranslationView(BaseTranslationView):
+    """
+    View to translate strings
+    """
 
     def initHistorySerializer(self, request, string):
         history = TranslationHistory().findByUserAndString(request.user, string)
@@ -76,10 +99,9 @@ class TranslationView(APIView):
         translation = gs.translate(text, targetLang, sourceLang)
 
         dictDir = sourceLang + '-' + targetLang
-        dictUrl = 'https://dictionary.yandex.net/api/v1/dicservice.json/lookup?key=%(yaDictKey)s'
         dict = requests.get(
-            (dictUrl + '&lang=%(dictDir)s&text=%(text)s') % {'yaDictKey': YA_DICT_KEY, 'dictDir': dictDir,
-                                                             'text': text})
+            (YA_DICT_URL + '&lang=%(dictDir)s&text=%(text)s') % {'yaDictKey': YA_DICT_KEY, 'dictDir': dictDir,
+                                                                 'text': text})
 
         response = {
             'translation_history': historySerializer.data,
@@ -93,6 +115,35 @@ class TranslationView(APIView):
             response['card'] = cardSerializer.data
 
         return Response(response, status=status.HTTP_200_OK)
+
+
+class FlatMeaningView(BaseTranslationView):
+    """
+    View to get flat representation of text meanings
+    """
+
+    def get(self, request):
+        """
+        ---
+        parameters:
+            - name: string
+              description: a string to translate
+              required: true
+              type: string
+              paramType: query
+            - name: lang
+              description: a target language
+              required: true
+              type: string
+              paramType: query
+        """
+
+        text = self.getText(request)
+        targetLang = self.getLang(request)
+
+        meanings = getFlatMeanings(text, targetLang)
+
+        return Response(meanings, status=status.HTTP_200_OK)
 
 
 class LanguageView(APIView):

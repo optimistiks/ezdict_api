@@ -1,5 +1,5 @@
 from django.conf.urls import url, include
-from ezdict.translation.views import TranslationView, LanguageView
+from ezdict.translation.views import TranslationView, LanguageView, FlatMeaningView
 from ezdict.translation_history.views import TranslationHistoryViewSet
 from ezdict.card.views import CardViewSet, CardMeaningViewSet, CardToStudyViewSet
 from ezdict.user_profile.views import UserProfileView
@@ -21,5 +21,6 @@ urlpatterns = [
     url(r'^user/', include('djoser.urls')),
     url(r'^profile/$', UserProfileView.as_view(), name='user_profile'),
     url(r'^translation/$', TranslationView.as_view(), name='translation'),
+    url(r'^flat_meaning/$', FlatMeaningView.as_view(), name='flat_meaning'),
     url(r'^language/$', LanguageView.as_view(), name='language'),
 ]
