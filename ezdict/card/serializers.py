@@ -69,6 +69,7 @@ class CardSerializer(serializers.ModelSerializer):
 
     user = serializers.PrimaryKeyRelatedField(read_only=True, default=None)
     card_meanings = CardMeaningSerializer(read_only=True, many=True)
+    card_to_study = CardToStudySerializer(read_only=True)
 
     def validate_user(self, value):
         return self.context['request'].user
