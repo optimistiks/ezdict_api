@@ -4,10 +4,9 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework_bulk import (
     BulkModelViewSet,
 )
-from django_filters import FilterSet
-from ezdict.ezdict_api.filters import ListFilter
 from rest_framework import mixins
 from rest_framework.viewsets import GenericViewSet
+from filters import CardFilterSet, CardMeaningFilterSet
 
 
 class CardViewSet(ModelViewSet):
@@ -17,20 +16,8 @@ class CardViewSet(ModelViewSet):
     """
     queryset = Card.objects.all()
     serializer_class = CardSerializer
-    filter_fields = ('text',)
+    filter_class = CardFilterSet
     ordering = ('-created',)
-
-
-class CardMeaningFilterSet(FilterSet):
-    """
-    A filter set to allow filtering CardMeanings by multiple ids
-    for batch operations
-    """
-    id = ListFilter(name='id')
-
-    class Meta:
-        model = CardMeaning
-        fields = ['id', 'card']
 
 
 class CardMeaningViewSet(BulkModelViewSet):
