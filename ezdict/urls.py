@@ -8,9 +8,9 @@ from rest_framework_bulk.routes import BulkRouter
 
 router = BulkRouter()
 router.register(r'translation_history', TranslationHistoryViewSet)
-router.register(r'card', CardViewSet)
-router.register(r'meaning', CardMeaningViewSet)
-router.register(r'to_study', CardToStudyViewSet)
+router.register(r'cards', CardViewSet)
+router.register(r'card_meanings', CardMeaningViewSet)
+router.register(r'cards_to_study', CardToStudyViewSet)
 
 # Wire up our API using automatic URL routing.
 # Additionally, we include login URLs for the browsable API.
@@ -21,6 +21,6 @@ urlpatterns = [
     url(r'^user/', include('djoser.urls')),
     url(r'^profile/$', UserProfileView.as_view(), name='user_profile'),
     url(r'^translation/$', TranslationView.as_view(), name='translation'),
-    url(r'^suggested_meaning/$', SuggestedMeaningView.as_view(), name='flat_meaning'),
-    url(r'^language/$', LanguageView.as_view(), name='language'),
+    url(r'^suggested_meanings/$', SuggestedMeaningView.as_view(), name='suggested_meanings'),
+    url(r'^languages/$', LanguageView.as_view(), name='languages'),
 ]
