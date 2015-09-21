@@ -6,6 +6,7 @@ from ezdict.card.models import Card
 
 class Quiz(models.Model):
     created = models.DateTimeField(auto_now_add=True)
+    completed = models.DateTimeField(blank=True, null=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='quizzes')
 
 
