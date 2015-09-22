@@ -4,6 +4,7 @@ from rest_framework.test import APITestCase
 from django.contrib.auth import get_user_model
 from ezdict.quiz.models import Quiz
 from ezdict.card.models import Card, CardToStudy
+from django.utils import timezone
 
 
 class QuizTests(APITestCase):
@@ -11,6 +12,20 @@ class QuizTests(APITestCase):
         self.user = get_user_model().objects.create_user(
             username='test', email='test@test.com', password='test')
         self.client.force_authenticate(user=self.user)
+
+    def createCard(self, user, text):
+        card = Card()
+        card.user = user
+        card.text = text
+        card.save()
+        return card
+
+    def createCardToStudy(self, user, card):
+        toStudy = CardToStudy()
+        toStudy.card = card
+        toStudy.user = user
+        toStudy.save()
+        return toStudy
 
     def testQuizIsNotCreatedIfThereAreNoCardsAndErrorIsThrown(self):
         url = reverse('quiz-list')
@@ -21,17 +36,104 @@ class QuizTests(APITestCase):
     def testQuizIsCreatedWithSetOfQuizCards(self):
         url = reverse('quiz-list')
 
-        card = Card()
-        card.user = self.user
-        card.text = 'hello'
-        card.save()
-
-        toStudy = CardToStudy()
-        toStudy.card = card
-        toStudy.user = self.user
-        toStudy.save()
+        card = self.createCard(self.user, 'hello')
+        self.createCardToStudy(self.user, card)
+        card = self.createCard(self.user, 'hello1')
+        self.createCardToStudy(self.user, card)
 
         response = self.client.post(url)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertIsNotNone(response.data.quiz_cards)
+        self.assertIn('quiz_cards', response.data)
+        self.assertEqual(len(response.data['quiz_cards']), 2)
 
+    def testOnlyCardsOfCurrentUserAreUsed(self):
+        url = reverse('quiz-list')
+
+        anotherUser = get_user_model().objects.create_user(
+            username='test1', email='test1@test.com', password='test1')
+
+        card = self.createCard(self.user, 'hello')
+        self.createCardToStudy(self.user, card)
+        card = self.createCard(self.user, 'hello1')
+        self.createCardToStudy(self.user, card)
+
+        card = self.createCard(anotherUser, 'hello')
+        self.createCardToStudy(anotherUser, card)
+        card = self.createCard(anotherUser, 'hello1')
+        self.createCardToStudy(anotherUser, card)
+
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertIn('quiz_cards', response.data)
+        self.assertEqual(len(response.data['quiz_cards']), 2)
+
+    def testOnlyCardsToStudyAreUsed(self):
+        url = reverse('quiz-list')
+
+        card = self.createCard(self.user, 'hello')
+        self.createCardToStudy(self.user, card)
+        card = self.createCard(self.user, 'hello1')
+        self.createCardToStudy(self.user, card)
+
+        self.createCard(self.user, 'hello2')
+        self.createCard(self.user, 'hello3')
+
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertIn('quiz_cards', response.data)
+        self.assertEqual(len(response.data['quiz_cards']), 2)
+
+    def testCardCantBeInMultipleUncompletedTestsAtOnce(self):
+        url = reverse('quiz-list')
+
+        card = self.createCard(self.user, 'hello')
+        self.createCardToStudy(self.user, card)
+
+        card = self.createCard(self.user, 'hello1')
+        self.createCardToStudy(self.user, card)
+
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertIn('quiz_cards', response.data)
+        self.assertEqual(len(response.data['quiz_cards']), 2)
+
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def testCardCanBeInCompletedAndUncompletedTestsAtOnce(self):
+        url = reverse('quiz-list')
+
+        card = self.createCard(self.user, 'hello')
+        self.createCardToStudy(self.user, card)
+        card = self.createCard(self.user, 'hello1')
+        self.createCardToStudy(self.user, card)
+
+        # create test
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertIn('quiz_cards', response.data)
+        self.assertEqual(len(response.data['quiz_cards']), 2)
+
+        # complete test
+        quizId = response.data['id']
+        quiz = Quiz.objects.get(id__exact=quizId)
+        quiz.completed = timezone.now()
+        quiz.save()
+
+        # try to create test again
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertIn('quiz_cards', response.data)
+        self.assertEqual(len(response.data['quiz_cards']), 2)
+
+        # complete test again
+        quizId = response.data['id']
+        quiz = Quiz.objects.get(id__exact=quizId)
+        quiz.completed = timezone.now()
+        quiz.save()
+
+        # try to create test again
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertIn('quiz_cards', response.data)
+        self.assertEqual(len(response.data['quiz_cards']), 2)

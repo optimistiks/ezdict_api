@@ -26,11 +26,8 @@ class QuizViewSet(mixins.CreateModelMixin,
 
     @transaction.atomic
     def perform_create(self, serializer):
-        cards = Card.objects.filter(
-            Q(quiz_cards__isnull=True) | Q(quiz_cards__quiz__completed__isnull=False),
-            to_study__isnull=False,
-            user_id__exact=self.request.user.id
-        )
+        cards = Card.objects.filter(to_study__isnull=False, user_id__exact=self.request.user.id).exclude(
+            id__in=QuizCard.objects.filter(quiz__completed__isnull=True).values_list('card_id', flat=True))
         if cards:
             serializer.save()
             for card in cards:
@@ -41,4 +38,3 @@ class QuizViewSet(mixins.CreateModelMixin,
                 quizCard.save()
         else:
             raise serializers.ValidationError(_('There are no valid cards for quiz.'))
-

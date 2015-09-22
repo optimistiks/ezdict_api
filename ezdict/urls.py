@@ -12,7 +12,7 @@ router.register(r'translation_history', TranslationHistoryViewSet)
 router.register(r'cards', CardViewSet)
 router.register(r'card_meanings', CardMeaningViewSet)
 router.register(r'cards_to_study', CardToStudyViewSet)
-router.register(r'quiz', QuizViewSet)
+router.register(r'quizzes', QuizViewSet)
 
 # Wire up our API using automatic URL routing.
 # Additionally, we include login URLs for the browsable API.
