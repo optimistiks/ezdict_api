@@ -56,6 +56,13 @@ class CardMeaningSerializer(BulkSerializerMixin, serializers.ModelSerializer):
         return value
 
 
+class CardWithoutRelationsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Card
+
+    user = serializers.PrimaryKeyRelatedField(read_only=True, default=None)
+
+
 class CardSerializer(serializers.ModelSerializer):
     class Meta:
         model = Card

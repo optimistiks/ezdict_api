@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from models import Quiz, QuizCard, QuizAnswer
+from ezdict.card.serializers import CardWithoutRelationsSerializer
 from ezdict.ezdict_api.serializers import ModelWithUserSerializer
 from rest_framework.validators import UniqueTogetherValidator
 from django.utils.translation import ugettext as _
@@ -19,7 +20,7 @@ class QuizCardSerializer(ModelWithUserSerializer):
     class Meta:
         model = QuizCard
 
-    card = serializers.PrimaryKeyRelatedField(read_only=True, default=None)
+    card = CardWithoutRelationsSerializer(read_only=True, default=None)
 
 
 class QuizSerializer(ModelWithUserSerializer):
