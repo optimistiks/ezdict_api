@@ -1,9 +1,10 @@
+# coding=utf-8
 from django.core.urlresolvers import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 from django.contrib.auth import get_user_model
-from ezdict.quiz.models import Quiz
-from ezdict.card.models import Card, CardToStudy
+from ezdict.quiz.models import Quiz, QuizCard, QuizAnswer
+from ezdict.card.models import Card, CardToStudy, CardMeaning
 from django.utils import timezone
 import datetime
 
@@ -21,12 +22,34 @@ class QuizTests(APITestCase):
         card.save()
         return card
 
+    def createCardMeaning(self, user, card, text):
+        cardMeaning = CardMeaning()
+        cardMeaning.user = user
+        cardMeaning.card = card
+        cardMeaning.text = text
+        cardMeaning.save()
+        return cardMeaning
+
     def createCardToStudy(self, user, card):
         toStudy = CardToStudy()
         toStudy.card = card
         toStudy.user = user
         toStudy.save()
         return toStudy
+
+    def createQuiz(self, user):
+        quiz = Quiz()
+        quiz.user = user
+        quiz.save()
+        return quiz
+
+    def createQuizCard(self, user, quiz, card):
+        quizCard = QuizCard()
+        quizCard.quiz = quiz
+        quizCard.card = card
+        quizCard.user = user
+        quizCard.save()
+        return quizCard
 
     def testQuizIsNotCreatedIfThereAreNoCardsAndErrorIsThrown(self):
         url = reverse('quiz-list')
@@ -196,3 +219,23 @@ class QuizTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertIn('quiz_cards', response.data)
         self.assertEqual(len(response.data['quiz_cards']), 5)
+
+    def testQuizIsCompletedAndAnswerIsMarkedAsCorrectWhenPostingASetOfCorrectAnswers(self):
+        url = reverse('answer-list')
+
+        card = self.createCard(self.user, 'hello')
+        self.createCardMeaning(self.user, card, 'привет')
+        self.createCardToStudy(self.user, card)
+
+        quiz = self.createQuiz(self.user)
+        quizCard = self.createQuizCard(self.user, quiz, card)
+
+        data = [{'quiz': quiz.id, 'quiz_card': quizCard.id, 'text': 'привет'}]
+        response = self.client.post(url, data)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        quiz.refresh_from_db()
+        self.assertIsNotNone(quiz.completed)
+        quizAnswer = QuizAnswer.objects.filter(quiz_card_id__exact=quizCard.id)
+        self.assertTrue(quizAnswer.is_correct)
+

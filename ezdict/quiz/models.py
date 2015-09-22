@@ -24,4 +24,6 @@ class QuizAnswer(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='quiz_answers')
     quiz = models.ForeignKey(Quiz, related_name='quiz_answers')
+    quiz_card = models.OneToOneField(QuizCard, related_name='quiz_answer')
     text = models.CharField(max_length=255)
+    is_correct = models.NullBooleanField()
