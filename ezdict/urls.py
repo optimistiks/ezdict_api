@@ -3,7 +3,7 @@ from ezdict.translation.views import TranslationView, LanguageView, SuggestedMea
 from ezdict.translation_history.views import TranslationHistoryViewSet
 from ezdict.card.views import CardViewSet, CardMeaningViewSet, CardToStudyViewSet
 from ezdict.user_profile.views import UserProfileView
-from ezdict.quiz.views import QuizViewSet
+from ezdict.quiz.views import QuizViewSet, QuizAnswerViewSet
 from rest_framework_bulk.routes import BulkRouter
 
 
@@ -12,7 +12,8 @@ router.register(r'translation_history', TranslationHistoryViewSet)
 router.register(r'cards', CardViewSet)
 router.register(r'card_meanings', CardMeaningViewSet)
 router.register(r'cards_to_study', CardToStudyViewSet)
-router.register(r'quizzes', QuizViewSet)
+router.register(r'quizzes', QuizViewSet, base_name='quiz')
+router.register(r'quiz_answers', QuizAnswerViewSet, base_name='quiz_answer')
 
 # Wire up our API using automatic URL routing.
 # Additionally, we include login URLs for the browsable API.

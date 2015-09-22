@@ -2,8 +2,6 @@ from rest_framework import serializers
 from models import Quiz, QuizCard, QuizAnswer
 from ezdict.card.serializers import CardWithoutRelationsSerializer
 from ezdict.ezdict_api.serializers import ModelWithUserSerializer
-from rest_framework.validators import UniqueTogetherValidator
-from django.utils.translation import ugettext as _
 from rest_framework_bulk import (
     BulkListSerializer,
     BulkSerializerMixin,
@@ -11,9 +9,20 @@ from rest_framework_bulk import (
 from rest_framework.exceptions import PermissionDenied
 
 
-class QuizAnswerSerializer(ModelWithUserSerializer):
+class QuizAnswerSerializer(BulkSerializerMixin, ModelWithUserSerializer):
     class Meta:
         model = QuizAnswer
+        list_serializer_class = BulkListSerializer
+
+    def validate_quiz(self, value):
+        if value.user.id != self.context['request'].user.id:
+            raise PermissionDenied()
+        return value
+
+    def validate_quiz_card(self, value):
+        if value.user.id != self.context['request'].user.id:
+            raise PermissionDenied()
+        return value
 
 
 class QuizCardSerializer(ModelWithUserSerializer):

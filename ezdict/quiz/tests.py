@@ -221,7 +221,7 @@ class QuizTests(APITestCase):
         self.assertEqual(len(response.data['quiz_cards']), 5)
 
     def testQuizIsCompletedAndAnswerIsMarkedAsCorrectWhenPostingASetOfCorrectAnswers(self):
-        url = reverse('answer-list')
+        url = reverse('quiz_answer-list')
 
         card = self.createCard(self.user, 'hello')
         self.createCardMeaning(self.user, card, 'привет')
@@ -231,11 +231,11 @@ class QuizTests(APITestCase):
         quizCard = self.createQuizCard(self.user, quiz, card)
 
         data = [{'quiz': quiz.id, 'quiz_card': quizCard.id, 'text': 'привет'}]
-        response = self.client.post(url, data)
+        response = self.client.post(url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         quiz.refresh_from_db()
         self.assertIsNotNone(quiz.completed)
-        quizAnswer = QuizAnswer.objects.filter(quiz_card_id__exact=quizCard.id)
+        quizAnswer = QuizAnswer.objects.get(quiz_card_id__exact=quizCard.id)
         self.assertTrue(quizAnswer.is_correct)
 
