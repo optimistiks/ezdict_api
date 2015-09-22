@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 from ezdict.quiz.models import Quiz
 from ezdict.card.models import Card, CardToStudy
 from django.utils import timezone
+import datetime
 
 
 class QuizTests(APITestCase):
@@ -45,6 +46,18 @@ class QuizTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertIn('quiz_cards', response.data)
         self.assertEqual(len(response.data['quiz_cards']), 2)
+
+    def testQuizIsCreatedWithSetOfNoMoreThan5Cards(self):
+        url = reverse('quiz-list')
+
+        for x in xrange(0, 10):
+            card = self.createCard(self.user, 'hello%d' % x)
+            self.createCardToStudy(self.user, card)
+
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertIn('quiz_cards', response.data)
+        self.assertEqual(len(response.data['quiz_cards']), 5)
 
     def testOnlyCardsOfCurrentUserAreUsed(self):
         url = reverse('quiz-list')
@@ -117,7 +130,7 @@ class QuizTests(APITestCase):
         # complete test
         quizId = response.data['id']
         quiz = Quiz.objects.get(id__exact=quizId)
-        quiz.completed = timezone.now()
+        quiz.completed = timezone.now() - datetime.timedelta(weeks=2)
         quiz.save()
 
         # try to create test again
@@ -129,7 +142,7 @@ class QuizTests(APITestCase):
         # complete test again
         quizId = response.data['id']
         quiz = Quiz.objects.get(id__exact=quizId)
-        quiz.completed = timezone.now()
+        quiz.completed = timezone.now() - datetime.timedelta(weeks=2)
         quiz.save()
 
         # try to create test again
@@ -137,3 +150,49 @@ class QuizTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertIn('quiz_cards', response.data)
         self.assertEqual(len(response.data['quiz_cards']), 2)
+
+    def testCardsFromCompletedQuizzesAreTakenOnlyIfGtThanTwoWeeksPassed(self):
+        url = reverse('quiz-list')
+
+        # create 2 cards
+        for x in xrange(0, 2):
+            card = self.createCard(self.user, 'hello%d' % x)
+            self.createCardToStudy(self.user, card)
+
+        # create quiz
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertIn('quiz_cards', response.data)
+        self.assertEqual(len(response.data['quiz_cards']), 2)
+
+        # complete quiz
+        quizId = response.data['id']
+        quiz = Quiz.objects.get(id__exact=quizId)
+        quiz.completed = timezone.now()
+        quiz.save()
+
+        # create 2 more cards
+        for x in xrange(0, 2):
+            card = self.createCard(self.user, 'morehello%d' % x)
+            self.createCardToStudy(self.user, card)
+
+        # create quiz (now only 2 cards should get to quiz because quiz with other 2 is recently completed )
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertIn('quiz_cards', response.data)
+        self.assertEqual(len(response.data['quiz_cards']), 2)
+
+        # create 3 more cards
+        for x in xrange(0, 3):
+            card = self.createCard(self.user, 'andmorehello%d' % x)
+            self.createCardToStudy(self.user, card)
+
+        # change quiz completed date
+        quiz.completed = timezone.now() - datetime.timedelta(weeks=2)
+        quiz.save()
+
+        # create quiz (now 5 cards should be in quiz, 3 new, and 2 from the old quiz )
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertIn('quiz_cards', response.data)
+        self.assertEqual(len(response.data['quiz_cards']), 5)

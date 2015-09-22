@@ -10,6 +10,8 @@ from rest_framework.viewsets import GenericViewSet
 from django.utils.translation import ugettext as _
 from django.db import transaction
 from django.db.models import Q
+from django.utils import timezone
+import datetime
 
 
 class QuizViewSet(mixins.CreateModelMixin,
@@ -26,8 +28,12 @@ class QuizViewSet(mixins.CreateModelMixin,
 
     @transaction.atomic
     def perform_create(self, serializer):
-        cards = Card.objects.filter(to_study__isnull=False, user_id__exact=self.request.user.id).exclude(
-            id__in=QuizCard.objects.filter(quiz__completed__isnull=True).values_list('card_id', flat=True))
+        now = timezone.now()
+        twoWeeks = datetime.timedelta(weeks=2)
+        cards = Card.objects\
+                    .filter(to_study__isnull=False, user_id__exact=self.request.user.id)\
+                    .exclude(id__in=QuizCard.objects.filter(quiz__completed__isnull=True).values_list('card_id', flat=True))\
+                    .exclude(id__in=QuizCard.objects.filter(quiz__completed__gt=now - twoWeeks).values_list('card_id', flat=True))[:5]
         if cards:
             serializer.save()
             for card in cards:
