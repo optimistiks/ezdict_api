@@ -22,6 +22,22 @@ class Card(models.Model):
             card = None
         return card
 
+    def isToStudy(self):
+        isToStudy = True
+        try:
+            self.to_study
+        except CardToStudy.DoesNotExist:
+            isToStudy = False
+        return isToStudy
+
+    def isLearned(self):
+        isLearned = True
+        try:
+            self.is_learned
+        except CardIsLearned.DoesNotExist:
+            isLearned = False
+        return isLearned
+
     def __str__(self):
         data = serializers.serialize('json', [self, ])
         struct = json.loads(data)

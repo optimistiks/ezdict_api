@@ -1,5 +1,5 @@
 from models import Quiz, QuizCard, QuizAnswer
-from ezdict.card.models import Card, CardMeaning
+from ezdict.card.models import Card, CardToStudy, CardIsLearned
 from serializers import QuizSerializer, QuizAnswerSerializer
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_bulk import (
@@ -58,21 +58,44 @@ class QuizAnswerViewSet(bulk_mixins.BulkCreateModelMixin,
 
     @transaction.atomic
     def perform_create(self, serializer):
-        quizAnswers = serializer.validated_data
-
-        for quizAnswer in quizAnswers:
-            quiz = quizAnswer.get('quiz')
-            if quiz.completed is None:
-                quiz.completed = timezone.now()
-                quiz.save()
-
-            cardMeaningsTextList = CardMeaning.objects.filter(
-                card_id__exact=quizAnswer.get('quiz_card').card_id).values_list(
-                'text', flat=True)
-
-            if quizAnswer.get('text').lower() in (text.lower() for text in cardMeaningsTextList):
-                quizAnswer['is_correct'] = True
-            else:
-                quizAnswer['is_correct'] = False
 
         serializer.save()
+
+        quizAnswers = serializer.instance
+        quiz = quizAnswers[0].quiz
+
+        quiz.completed = timezone.now()
+        quiz.save()
+
+        for quizCard in quiz.quiz_cards.all():
+
+            meaningModels = quizCard.card.meanings.all()
+            answerModels = quizCard.quiz_answers.all()
+
+            cardIsCorrect = len(meaningModels) == len(answerModels)
+            meaningTexts = set(meaning.text.lower() for meaning in meaningModels)
+
+            for quizAnswer in quizCard.quiz_answers.all():
+
+                if quizAnswer.text in meaningTexts:
+                    quizAnswer.is_correct = True
+                else:
+                    quizAnswer.is_correct = False
+                    cardIsCorrect = False
+
+                quizAnswer.save()
+
+            if cardIsCorrect and quizCard.card.isToStudy():
+                quizCard.card.to_study.delete()
+                # todo move to somewhere like model.create
+                isLearned = CardIsLearned()
+                isLearned.user = self.request.user
+                isLearned.card = quizCard.card
+                isLearned.save()
+
+            if not cardIsCorrect and quizCard.card.isLearned():
+                quizCard.card.is_learned.delete()
+                toStudy = CardToStudy()
+                toStudy.user = self.request.user
+                toStudy.card = quizCard.card
+                toStudy.save()
