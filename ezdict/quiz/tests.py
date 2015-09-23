@@ -1,10 +1,9 @@
-# coding=utf-8
 from django.core.urlresolvers import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 from django.contrib.auth import get_user_model
 from ezdict.quiz.models import Quiz, QuizCard, QuizAnswer
-from ezdict.card.models import Card, CardToStudy, CardMeaning
+from ezdict.card.models import Card, CardToStudy, CardMeaning, CardIsLearned
 from django.utils import timezone
 import datetime
 
@@ -36,6 +35,13 @@ class QuizTests(APITestCase):
         toStudy.user = user
         toStudy.save()
         return toStudy
+
+    def createCardIsLearned(self, user, card):
+        isLearned = CardIsLearned()
+        isLearned.card = card
+        isLearned.user = user
+        isLearned.save()
+        return isLearned
 
     def createQuiz(self, user):
         quiz = Quiz()
@@ -220,22 +226,126 @@ class QuizTests(APITestCase):
         self.assertIn('quiz_cards', response.data)
         self.assertEqual(len(response.data['quiz_cards']), 5)
 
-    def testQuizIsCompletedAndAnswerIsMarkedAsCorrectWhenPostingASetOfCorrectAnswers(self):
+    def testQuizIsCompletedAndAnswersAreMarkedAsCorrectWhenPostingASetOfCorrectAnswers(self):
         url = reverse('quiz_answer-list')
 
         card = self.createCard(self.user, 'hello')
-        self.createCardMeaning(self.user, card, 'привет')
+        self.createCardMeaning(self.user, card, 'hello')
+        self.createCardMeaning(self.user, card, 'greeting')
         self.createCardToStudy(self.user, card)
 
         quiz = self.createQuiz(self.user)
         quizCard = self.createQuizCard(self.user, quiz, card)
 
-        data = [{'quiz': quiz.id, 'quiz_card': quizCard.id, 'text': 'привет'}]
+        data = [
+            {'quiz': quiz.id, 'quiz_card': quizCard.id, 'text': 'hello'},
+            {'quiz': quiz.id, 'quiz_card': quizCard.id, 'text': 'greeting'},
+        ]
         response = self.client.post(url, data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         quiz.refresh_from_db()
         self.assertIsNotNone(quiz.completed)
-        quizAnswer = QuizAnswer.objects.get(quiz_card_id__exact=quizCard.id)
-        self.assertTrue(quizAnswer.is_correct)
+        quizAnswers = QuizAnswer.objects.filter(quiz_card_id__exact=quizCard.id)
+        self.assertEqual(quizAnswers.count(), 2)
+        for quizAnswer in quizAnswers:
+            self.assertTrue(quizAnswer.is_correct)
 
+    def testQuizIsCompletedAndAnswersAreMarkedAsIncorrectWhenPostingASetOfIncorrectAnswers(self):
+        url = reverse('quiz_answer-list')
+
+        card = self.createCard(self.user, 'hello')
+        self.createCardMeaning(self.user, card, 'hello')
+        self.createCardMeaning(self.user, card, 'greeting')
+        self.createCardToStudy(self.user, card)
+
+        quiz = self.createQuiz(self.user)
+        quizCard = self.createQuizCard(self.user, quiz, card)
+
+        data = [
+            {'quiz': quiz.id, 'quiz_card': quizCard.id, 'text': 'incorrect1'},
+            {'quiz': quiz.id, 'quiz_card': quizCard.id, 'text': 'incorrect2'},
+        ]
+        response = self.client.post(url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        quiz.refresh_from_db()
+        self.assertIsNotNone(quiz.completed)
+        quizAnswers = QuizAnswer.objects.filter(quiz_card_id__exact=quizCard.id)
+        self.assertEqual(quizAnswers.count(), 2)
+        for quizAnswer in quizAnswers:
+            self.assertFalse(quizAnswer.is_correct)
+
+    def testCardToStudyBecomesLearnedWhenAnswersAreCorrectAndFull(self):
+        url = reverse('quiz_answer-list')
+
+        card = self.createCard(self.user, 'hello')
+        self.createCardMeaning(self.user, card, 'hello')
+        self.createCardMeaning(self.user, card, 'greeting')
+        self.createCardToStudy(self.user, card)
+
+        quiz = self.createQuiz(self.user)
+        quizCard = self.createQuizCard(self.user, quiz, card)
+
+        data = [
+            {'quiz': quiz.id, 'quiz_card': quizCard.id, 'text': 'hello'},
+            {'quiz': quiz.id, 'quiz_card': quizCard.id, 'text': 'greeting'},
+        ]
+        response = self.client.post(url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        quiz.refresh_from_db()
+        self.assertIsNotNone(quiz.completed)
+        cardToStudy = CardToStudy.objects.filter(card_id__exact=card.id).count()
+        cardIsLearned = CardIsLearned.objects.filter(card_id__exact=card.id).count()
+        self.assertEqual(cardToStudy, 0)
+        self.assertEqual(cardIsLearned, 1)
+
+    def testCardIsLearnedBecomesToStudyWhenAnswersAreNotCorrect(self):
+        url = reverse('quiz_answer-list')
+
+        card = self.createCard(self.user, 'hello')
+        self.createCardMeaning(self.user, card, 'hello')
+        self.createCardMeaning(self.user, card, 'greeting')
+        self.createCardIsLearned(self.user, card)
+
+        quiz = self.createQuiz(self.user)
+        quizCard = self.createQuizCard(self.user, quiz, card)
+
+        data = [
+            {'quiz': quiz.id, 'quiz_card': quizCard.id, 'text': 'incorrect1'},
+            {'quiz': quiz.id, 'quiz_card': quizCard.id, 'text': 'incorrect2'},
+        ]
+        response = self.client.post(url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        quiz.refresh_from_db()
+        self.assertIsNotNone(quiz.completed)
+        cardToStudy = CardToStudy.objects.filter(card_id__exact=card.id).count()
+        cardIsLearned = CardIsLearned.objects.filter(card_id__exact=card.id).count()
+        self.assertEqual(cardToStudy, 1)
+        self.assertEqual(cardIsLearned, 0)
+
+    def testCardIsLearnedBecomesToStudyWhenAnswersAreNotFull(self):
+        url = reverse('quiz_answer-list')
+
+        card = self.createCard(self.user, 'hello')
+        self.createCardMeaning(self.user, card, 'hello')
+        self.createCardMeaning(self.user, card, 'greeting')
+        self.createCardIsLearned(self.user, card)
+
+        quiz = self.createQuiz(self.user)
+        quizCard = self.createQuizCard(self.user, quiz, card)
+
+        data = [
+            {'quiz': quiz.id, 'quiz_card': quizCard.id, 'text': 'hello'},
+        ]
+        response = self.client.post(url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        quiz.refresh_from_db()
+        self.assertIsNotNone(quiz.completed)
+        cardToStudy = CardToStudy.objects.filter(card_id__exact=card.id).count()
+        cardIsLearned = CardIsLearned.objects.filter(card_id__exact=card.id).count()
+        self.assertEqual(cardToStudy, 1)
+        self.assertEqual(cardIsLearned, 0)

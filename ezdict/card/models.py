@@ -63,3 +63,20 @@ class CardToStudy(models.Model):
         except self.DoesNotExist:
             toStudy = None
         return toStudy
+
+
+class CardIsLearned(models.Model):
+    created = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='learned_cards')
+    card = models.OneToOneField(Card, related_name='is_learned')
+
+    class Meta:
+        unique_together = ('user', 'card')
+
+    def findByUserAndCard(self, user, card):
+        try:
+            isLearned = CardIsLearned.objects.get(user__exact=user.id,
+                                                  card__exact=card.id)
+        except self.DoesNotExist:
+            isLearned = None
+        return isLearned

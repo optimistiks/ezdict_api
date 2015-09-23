@@ -46,10 +46,8 @@ class QuizViewSet(mixins.CreateModelMixin,
 
 
 class QuizAnswerViewSet(bulk_mixins.BulkCreateModelMixin,
-                        mixins.CreateModelMixin,
                         mixins.RetrieveModelMixin,
                         mixins.ListModelMixin,
-                        mixins.DestroyModelMixin,
                         GenericViewSet):
     """
     A ViewSet for working with quizzes.
@@ -73,8 +71,8 @@ class QuizAnswerViewSet(bulk_mixins.BulkCreateModelMixin,
                 'text', flat=True)
 
             if quizAnswer.get('text').lower() in (text.lower() for text in cardMeaningsTextList):
-                quizAnswer.is_correct = True
+                quizAnswer['is_correct'] = True
             else:
-                quizAnswer.is_correct = False
+                quizAnswer['is_correct'] = False
 
         serializer.save()

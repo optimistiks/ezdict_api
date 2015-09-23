@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from models import Card, CardMeaning, CardToStudy
+from models import Card, CardMeaning, CardToStudy, CardIsLearned
 from rest_framework.validators import UniqueTogetherValidator
 from django.utils.translation import ugettext as _
 from rest_framework_bulk import (
@@ -17,6 +17,29 @@ class CardToStudySerializer(serializers.ModelSerializer):
                 queryset=CardToStudy.objects.all(),
                 fields=('user', 'card'),
                 message=_('This card is already being studied.')
+            )
+        ]
+
+    user = serializers.PrimaryKeyRelatedField(read_only=True, default=None)
+    card = serializers.PrimaryKeyRelatedField(queryset=Card.objects.all(), default=None)
+
+    def validate_user(self, value):
+        return self.context['request'].user
+
+    def validate_card(self, value):
+        if value.user.id != self.context['request'].user.id:
+            raise PermissionDenied()
+        return value
+
+
+class CardIsLearnedSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CardIsLearned
+        validators = [
+            UniqueTogetherValidator(
+                queryset=CardIsLearned.objects.all(),
+                fields=('user', 'card'),
+                message=_('This card is already learned.')
             )
         ]
 
@@ -77,6 +100,7 @@ class CardSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(read_only=True, default=None)
     meanings = CardMeaningSerializer(read_only=True, many=True)
     to_study = CardToStudySerializer(read_only=True)
+    is_learned = CardIsLearnedSerializer(read_only=True)
 
     def validate_user(self, value):
         return self.context['request'].user
