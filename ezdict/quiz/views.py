@@ -16,26 +16,57 @@ class QuizViewSet(mixins.CreateModelMixin,
                   GenericViewSet):
     """
     A ViewSet for working with quizzes.
+    type -- a type of quiz to create
     """
     queryset = Quiz.objects.all()
     serializer_class = QuizSerializer
     ordering = ('-created',)
 
+    TYPE_TO_STUDY = 'to_study'
+    TYPE_LEARNED = 'is_learned'
+
+    def get_type(self):
+        """
+        :rtype : string or None
+        """
+        type = self.request.query_params.get('type', None)
+        if type is not None and type != self.TYPE_TO_STUDY and type != self.TYPE_LEARNED:
+            raise serializers.ValidationError(_('Invalid parameter %(param)s.') % {'param': 'type'})
+        return type
+
+    def is_type_learned(self):
+        return self.get_type() == self.TYPE_LEARNED
+
+    def is_type_to_study(self):
+        type = self.get_type()
+        return type == self.TYPE_TO_STUDY or type is None
+
     @transaction.atomic
     def perform_create(self, serializer):
+
         now = timezone.now()
-        two_weeks = datetime.timedelta(weeks=2)
-        cards = Card.objects.filter(to_study__isnull=False, user_id__exact=self.request.user.id).exclude(
+        twoWeeks = datetime.timedelta(weeks=2)
+        cards = Card.objects
+
+        if self.is_type_to_study():
+            cards = cards.filter(to_study__isnull=False)
+
+        if self.is_type_learned():
+            cards = cards.filter(is_learned__isnull=False)
+
+        cards = cards.filter(user_id__exact=self.request.user.id).exclude(
             id__in=QuizCard.objects.filter(quiz__completed__isnull=True).values_list('card_id', flat=True)).exclude(
-            id__in=QuizCard.objects.filter(quiz__completed__gt=now - two_weeks).values_list('card_id', flat=True))[:5]
+            id__in=QuizCard.objects.filter(quiz__completed__gt=now - twoWeeks).values_list('card_id', flat=True))[:5]
+
         if cards:
             serializer.save()
             for card in cards:
-                quiz_card = QuizCard()
-                quiz_card.user = self.request.user
-                quiz_card.card = card
-                quiz_card.quiz = serializer.instance
-                quiz_card.save()
+                # todo: remove to model.create
+                quizCard = QuizCard()
+                quizCard.user = self.request.user
+                quizCard.card = card
+                quizCard.quiz = serializer.instance
+                quizCard.save()
         else:
             raise serializers.ValidationError(_('There are no valid cards for quiz.'))
 
@@ -45,10 +76,12 @@ class QuizAnswerViewSet(bulk_mixins.BulkCreateModelMixin,
                         mixins.ListModelMixin,
                         GenericViewSet):
     """
-    A ViewSet for working with quizzes.
+    A ViewSet for working with quiz answers.
+    quiz -- a quiz to search answers for
     """
     queryset = QuizAnswer.objects.all()
     serializer_class = QuizAnswerSerializer
+    filter_fields = ('quiz',)
     ordering = ('-created',)
 
     @transaction.atomic
@@ -81,7 +114,6 @@ class QuizAnswerViewSet(bulk_mixins.BulkCreateModelMixin,
                 quizAnswer.save()
 
             if card_is_correct and quiz_card.card.isToStudy():
-                quiz_card.card.to_study.delete()
                 # todo move to somewhere like model.create
                 is_learned = CardIsLearned()
                 is_learned.user = self.request.user
@@ -89,7 +121,6 @@ class QuizAnswerViewSet(bulk_mixins.BulkCreateModelMixin,
                 is_learned.save()
 
             if not card_is_correct and quiz_card.card.isLearned():
-                quiz_card.card.is_learned.delete()
                 to_study = CardToStudy()
                 to_study.user = self.request.user
                 to_study.card = quiz_card.card

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from models import Quiz, QuizCard, QuizAnswer
-from ezdict.card.serializers import CardWithoutRelationsSerializer
+from ezdict.card.serializers import CardSerializer
 from ezdict.ezdict_api.serializers import ModelWithUserSerializer
 from rest_framework_bulk import (
     BulkListSerializer,
@@ -29,7 +29,7 @@ class QuizCardSerializer(ModelWithUserSerializer):
     class Meta:
         model = QuizCard
 
-    card = CardWithoutRelationsSerializer(read_only=True, default=None)
+    card = CardSerializer(read_only=True, default=None)
 
 
 class QuizSerializer(ModelWithUserSerializer):
@@ -38,3 +38,4 @@ class QuizSerializer(ModelWithUserSerializer):
 
     completed = serializers.DateTimeField(read_only=True, default=None)
     quiz_cards = QuizCardSerializer(read_only=True, many=True)
+    quiz_answers = QuizAnswerSerializer(read_only=True, many=True)

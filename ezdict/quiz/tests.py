@@ -109,7 +109,7 @@ class QuizTests(APITestCase):
         self.assertIn('quiz_cards', response.data)
         self.assertEqual(len(response.data['quiz_cards']), 2)
 
-    def testOnlyCardsToStudyAreUsed(self):
+    def testOnlyCardsToStudyAreUsedWhenNotPassingAnyQueryParameters(self):
         url = reverse('quiz-list')
 
         card = self.createCard(self.user, 'hello')
@@ -120,7 +120,48 @@ class QuizTests(APITestCase):
         self.createCard(self.user, 'hello2')
         self.createCard(self.user, 'hello3')
 
+        card = self.createCard(self.user, 'hello4')
+        self.createCardIsLearned(self.user, card)
+
         response = self.client.post(url)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertIn('quiz_cards', response.data)
+        self.assertEqual(len(response.data['quiz_cards']), 2)
+
+    def testOnlyCardsToStudyAreUsedWhenPassingTypeQueryParameter(self):
+        url = reverse('quiz-list')
+
+        card = self.createCard(self.user, 'hello')
+        self.createCardToStudy(self.user, card)
+        card = self.createCard(self.user, 'hello1')
+        self.createCardToStudy(self.user, card)
+
+        self.createCard(self.user, 'hello2')
+        self.createCard(self.user, 'hello3')
+
+        card = self.createCard(self.user, 'hello4')
+        self.createCardIsLearned(self.user, card)
+
+        response = self.client.post(url + '?type=to_study')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertIn('quiz_cards', response.data)
+        self.assertEqual(len(response.data['quiz_cards']), 2)
+
+    def testOnlyLearnedCardsAreUsedWhenPassingTypeQueryParameter(self):
+        url = reverse('quiz-list')
+
+        card = self.createCard(self.user, 'hello')
+        self.createCardIsLearned(self.user, card)
+        card = self.createCard(self.user, 'hello1')
+        self.createCardIsLearned(self.user, card)
+
+        self.createCard(self.user, 'hello2')
+        self.createCard(self.user, 'hello3')
+
+        card = self.createCard(self.user, 'hello4')
+        self.createCardToStudy(self.user, card)
+
+        response = self.client.post(url + '?type=is_learned')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertIn('quiz_cards', response.data)
         self.assertEqual(len(response.data['quiz_cards']), 2)

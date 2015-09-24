@@ -72,7 +72,7 @@ class CardToStudy(models.Model):
     class Meta:
         unique_together = ('user', 'card')
 
-    def findByUserAndCard(self, user, card):
+    def find_by_user_and_card(self, user, card):
         try:
             toStudy = CardToStudy.objects.get(user__exact=user.id,
                                               card__exact=card.id)
@@ -89,7 +89,7 @@ class CardIsLearned(models.Model):
     class Meta:
         unique_together = ('user', 'card')
 
-    def findByUserAndCard(self, user, card):
+    def find_by_user_and_card(self, user, card):
         try:
             isLearned = CardIsLearned.objects.get(user__exact=user.id,
                                                   card__exact=card.id)
