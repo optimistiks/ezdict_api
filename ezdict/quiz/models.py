@@ -6,8 +6,18 @@ from ezdict.card.models import Card
 
 class Quiz(models.Model):
     created = models.DateTimeField(auto_now_add=True)
+    type = models.CharField(max_length=50)
     completed = models.DateTimeField(blank=True, null=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='quizzes')
+
+    TYPE_TO_STUDY = 'to_study'
+    TYPE_IS_LEARNED = 'is_learned'
+
+    def is_type_learned(self):
+        return self.type == self.TYPE_IS_LEARNED
+
+    def is_type_to_study(self):
+        return self.type == self.TYPE_TO_STUDY
 
 
 class QuizCard(models.Model):

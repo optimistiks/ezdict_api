@@ -16,7 +16,6 @@ class QuizViewSet(mixins.CreateModelMixin,
                   GenericViewSet):
     """
     A ViewSet for working with quizzes.
-    type -- a type of quiz to create
     """
     queryset = Quiz.objects.all()
     serializer_class = QuizSerializer
@@ -25,33 +24,19 @@ class QuizViewSet(mixins.CreateModelMixin,
     TYPE_TO_STUDY = 'to_study'
     TYPE_LEARNED = 'is_learned'
 
-    def get_type(self):
-        """
-        :rtype : string or None
-        """
-        type = self.request.query_params.get('type', None)
-        if type is not None and type != self.TYPE_TO_STUDY and type != self.TYPE_LEARNED:
-            raise serializers.ValidationError(_('Invalid parameter %(param)s.') % {'param': 'type'})
-        return type
-
-    def is_type_learned(self):
-        return self.get_type() == self.TYPE_LEARNED
-
-    def is_type_to_study(self):
-        type = self.get_type()
-        return type == self.TYPE_TO_STUDY or type is None
-
     @transaction.atomic
     def perform_create(self, serializer):
+        serializer.save()
+        quiz = serializer.instance
 
         now = timezone.now()
         twoWeeks = datetime.timedelta(weeks=2)
         cards = Card.objects
 
-        if self.is_type_to_study():
+        if quiz.is_type_to_study():
             cards = cards.filter(to_study__isnull=False)
 
-        if self.is_type_learned():
+        if quiz.is_type_learned():
             cards = cards.filter(is_learned__isnull=False)
 
         cards = cards.filter(user_id__exact=self.request.user.id).exclude(
@@ -59,9 +44,8 @@ class QuizViewSet(mixins.CreateModelMixin,
             id__in=QuizCard.objects.filter(quiz__completed__gt=now - twoWeeks).values_list('card_id', flat=True))[:5]
 
         if cards:
-            serializer.save()
             for card in cards:
-                # todo: remove to model.create
+                # todo: move to model.create
                 quizCard = QuizCard()
                 quizCard.user = self.request.user
                 quizCard.card = card

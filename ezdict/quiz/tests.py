@@ -60,7 +60,8 @@ class QuizTests(APITestCase):
     def testQuizIsNotCreatedIfThereAreNoCardsAndErrorIsThrown(self):
         url = reverse('quiz-list')
 
-        response = self.client.post(url)
+        data = {'type': 'to_study'}
+        response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def testQuizIsCreatedWithSetOfQuizCards(self):
@@ -71,7 +72,8 @@ class QuizTests(APITestCase):
         card = self.createCard(self.user, 'hello1')
         self.createCardToStudy(self.user, card)
 
-        response = self.client.post(url)
+        data = {'type': 'to_study'}
+        response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertIn('quiz_cards', response.data)
         self.assertEqual(len(response.data['quiz_cards']), 2)
@@ -83,7 +85,8 @@ class QuizTests(APITestCase):
             card = self.createCard(self.user, 'hello%d' % x)
             self.createCardToStudy(self.user, card)
 
-        response = self.client.post(url)
+        data = {'type': 'to_study'}
+        response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertIn('quiz_cards', response.data)
         self.assertEqual(len(response.data['quiz_cards']), 5)
@@ -104,12 +107,13 @@ class QuizTests(APITestCase):
         card = self.createCard(anotherUser, 'hello1')
         self.createCardToStudy(anotherUser, card)
 
-        response = self.client.post(url)
+        data = {'type': 'to_study'}
+        response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertIn('quiz_cards', response.data)
         self.assertEqual(len(response.data['quiz_cards']), 2)
 
-    def testOnlyCardsToStudyAreUsedWhenNotPassingAnyQueryParameters(self):
+    def testErrorIsThrownWhenNotSpecifyingType(self):
         url = reverse('quiz-list')
 
         card = self.createCard(self.user, 'hello')
@@ -124,11 +128,9 @@ class QuizTests(APITestCase):
         self.createCardIsLearned(self.user, card)
 
         response = self.client.post(url)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertIn('quiz_cards', response.data)
-        self.assertEqual(len(response.data['quiz_cards']), 2)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def testOnlyCardsToStudyAreUsedWhenPassingTypeQueryParameter(self):
+    def testOnlyCardsToStudyAreUsedWhenPassingTypeField(self):
         url = reverse('quiz-list')
 
         card = self.createCard(self.user, 'hello')
@@ -142,12 +144,13 @@ class QuizTests(APITestCase):
         card = self.createCard(self.user, 'hello4')
         self.createCardIsLearned(self.user, card)
 
-        response = self.client.post(url + '?type=to_study')
+        data = {'type': 'to_study'}
+        response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertIn('quiz_cards', response.data)
         self.assertEqual(len(response.data['quiz_cards']), 2)
 
-    def testOnlyLearnedCardsAreUsedWhenPassingTypeQueryParameter(self):
+    def testOnlyLearnedCardsAreUsedWhenPassingTypeField(self):
         url = reverse('quiz-list')
 
         card = self.createCard(self.user, 'hello')
@@ -161,7 +164,8 @@ class QuizTests(APITestCase):
         card = self.createCard(self.user, 'hello4')
         self.createCardToStudy(self.user, card)
 
-        response = self.client.post(url + '?type=is_learned')
+        data = {'type': 'is_learned'}
+        response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertIn('quiz_cards', response.data)
         self.assertEqual(len(response.data['quiz_cards']), 2)
@@ -175,12 +179,13 @@ class QuizTests(APITestCase):
         card = self.createCard(self.user, 'hello1')
         self.createCardToStudy(self.user, card)
 
-        response = self.client.post(url)
+        data = {'type': 'to_study'}
+        response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertIn('quiz_cards', response.data)
         self.assertEqual(len(response.data['quiz_cards']), 2)
 
-        response = self.client.post(url)
+        response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def testCardCanBeInCompletedAndUncompletedTestsAtOnce(self):
@@ -192,7 +197,8 @@ class QuizTests(APITestCase):
         self.createCardToStudy(self.user, card)
 
         # create test
-        response = self.client.post(url)
+        data = {'type': 'to_study'}
+        response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertIn('quiz_cards', response.data)
         self.assertEqual(len(response.data['quiz_cards']), 2)
@@ -204,7 +210,7 @@ class QuizTests(APITestCase):
         quiz.save()
 
         # try to create test again
-        response = self.client.post(url)
+        response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertIn('quiz_cards', response.data)
         self.assertEqual(len(response.data['quiz_cards']), 2)
@@ -216,7 +222,7 @@ class QuizTests(APITestCase):
         quiz.save()
 
         # try to create test again
-        response = self.client.post(url)
+        response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertIn('quiz_cards', response.data)
         self.assertEqual(len(response.data['quiz_cards']), 2)
@@ -230,7 +236,8 @@ class QuizTests(APITestCase):
             self.createCardToStudy(self.user, card)
 
         # create quiz
-        response = self.client.post(url)
+        data = {'type': 'to_study'}
+        response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertIn('quiz_cards', response.data)
         self.assertEqual(len(response.data['quiz_cards']), 2)
@@ -247,7 +254,7 @@ class QuizTests(APITestCase):
             self.createCardToStudy(self.user, card)
 
         # create quiz (now only 2 cards should get to quiz because quiz with other 2 is recently completed )
-        response = self.client.post(url)
+        response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertIn('quiz_cards', response.data)
         self.assertEqual(len(response.data['quiz_cards']), 2)
@@ -262,7 +269,7 @@ class QuizTests(APITestCase):
         quiz.save()
 
         # create quiz (now 5 cards should be in quiz, 3 new, and 2 from the old quiz )
-        response = self.client.post(url)
+        response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertIn('quiz_cards', response.data)
         self.assertEqual(len(response.data['quiz_cards']), 5)

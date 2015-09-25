@@ -7,6 +7,7 @@ from rest_framework_bulk import (
     BulkSerializerMixin,
 )
 from rest_framework.exceptions import PermissionDenied
+from django.utils.translation import ugettext as _
 
 
 class QuizAnswerSerializer(BulkSerializerMixin, ModelWithUserSerializer):
@@ -39,3 +40,8 @@ class QuizSerializer(ModelWithUserSerializer):
     completed = serializers.DateTimeField(read_only=True, default=None)
     quiz_cards = QuizCardSerializer(read_only=True, many=True)
     quiz_answers = QuizAnswerSerializer(read_only=True, many=True)
+
+    def validate_type(self, value):
+        if value != Quiz.TYPE_TO_STUDY and value != Quiz.TYPE_IS_LEARNED:
+            raise serializers.ValidationError(_('Invalid parameter %(param)s.') % {'param': 'type'})
+        return value
