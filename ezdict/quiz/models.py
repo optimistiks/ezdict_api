@@ -35,5 +35,5 @@ class QuizAnswer(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='quiz_answers')
     quiz = models.ForeignKey(Quiz, related_name='quiz_answers')
     quiz_card = models.ForeignKey(QuizCard, related_name='quiz_answers')
-    text = models.CharField(max_length=255)
+    text = models.CharField(max_length=255, blank=True)
     is_correct = models.NullBooleanField()

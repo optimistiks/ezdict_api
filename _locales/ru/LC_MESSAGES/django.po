@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-09-13 07:47+0000\n"
+"POT-Creation-Date: 2015-09-27 16:54+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -23,11 +23,15 @@ msgstr ""
 msgid "This card is already being studied."
 msgstr "Эта карточка уже добавлена в изучаемые."
 
-#: ezdict/card/serializers.py:43
+#: ezdict/card/serializers.py:42
+msgid "This card is already learned."
+msgstr "Эта карточка уже изучена."
+
+#: ezdict/card/serializers.py:66
 msgid "This meaning already exists."
 msgstr "Такое значение уже существует."
 
-#: ezdict/card/serializers.py:66
+#: ezdict/card/serializers.py:96
 msgid "Card for this text already exists."
 msgstr "Карточка для этого слова уже существует."
 
@@ -95,6 +99,14 @@ msgstr "пользователь"
 #: ezdict/ezdict_api/models.py:42
 msgid "users"
 msgstr "пользователи"
+
+#: ezdict/quiz/serializers.py:46
+msgid "Invalid parameter %(param)s."
+msgstr "Неверное значение параметра %(param)s."
+
+#: ezdict/quiz/views.py:55
+msgid "There are no valid cards for quiz."
+msgstr "Нет подходящих карточек для теста."
 
 #: ezdict/translation/views.py:25 ezdict/translation/views.py:32
 #, python-format
