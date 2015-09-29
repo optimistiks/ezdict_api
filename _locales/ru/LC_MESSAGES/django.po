@@ -113,6 +113,31 @@ msgstr "Нет подходящих карточек для теста."
 msgid "Parameter %(param)s is required."
 msgstr "Параметр %(param)s обязателен."
 
+#: env/lib/python2.7/site-packages/djoser/constants.py:3
+msgid "Unable to login with provided credentials."
+msgstr "Неверный логин или пароль."
+
+#: env/lib/python2.7/site-packages/djoser/constants.py:4
+msgid "User account is disabled."
+msgstr "Аккаунт отключен."
+
+#: env/lib/python2.7/site-packages/djoser/constants.py:5
+msgid "Invalid token for given user."
+msgstr "Неверный токен."
+
+#: env/lib/python2.7/site-packages/djoser/constants.py:6
+msgid "The two password fields didn't match."
+msgstr "Пароли не совпадают."
+
+#: env/lib/python2.7/site-packages/djoser/constants.py:7
+#, python-brace-format
+msgid "The two {0} fields didn't match."
+msgstr "Поля {0} не совпадают."
+
+#: env/lib/python2.7/site-packages/djoser/constants.py:8
+msgid "Invalid password."
+msgstr "Неверный пароль."
+
 #~ msgid "You already learn this word"
 #~ msgstr "Это слово уже добавлено в изучаемые"
 
