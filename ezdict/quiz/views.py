@@ -7,7 +7,7 @@ from rest_framework.viewsets import GenericViewSet
 from django.utils.translation import ugettext as _
 from django.db import transaction
 from django.utils import timezone
-import datetime
+from django.conf import settings
 
 
 class QuizViewSet(mixins.CreateModelMixin,
@@ -30,7 +30,7 @@ class QuizViewSet(mixins.CreateModelMixin,
         quiz = serializer.instance
 
         now = timezone.now()
-        twoWeeks = datetime.timedelta(weeks=2)
+        timedelta = settings.EZDICT['QUIZ']['CARD_TIMEDELTA']
         cards = Card.objects
 
         if quiz.is_type_to_study():
@@ -41,16 +41,17 @@ class QuizViewSet(mixins.CreateModelMixin,
 
         cards = cards.filter(user_id__exact=self.request.user.id).exclude(
             id__in=QuizCard.objects.filter(quiz__completed__isnull=True).values_list('card_id', flat=True)).exclude(
-            id__in=QuizCard.objects.filter(quiz__completed__gt=now - twoWeeks).values_list('card_id', flat=True))[:5]
+            id__in=QuizCard.objects.filter(quiz__completed__gt=now - timedelta).values_list('card_id', flat=True))[
+                :settings.EZDICT['QUIZ']['CARDS_IN_QUIZ']]
 
         if cards:
             for card in cards:
                 # todo: move to model.create
-                quizCard = QuizCard()
-                quizCard.user = self.request.user
-                quizCard.card = card
-                quizCard.quiz = serializer.instance
-                quizCard.save()
+                quiz_card = QuizCard()
+                quiz_card.user = self.request.user
+                quiz_card.card = card
+                quiz_card.quiz = serializer.instance
+                quiz_card.save()
         else:
             raise serializers.ValidationError(_('There are no valid cards for quiz.'))
 

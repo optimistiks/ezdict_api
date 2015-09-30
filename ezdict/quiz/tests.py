@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from ezdict.quiz.models import Quiz, QuizCard, QuizAnswer
 from ezdict.card.models import Card, CardToStudy, CardMeaning, CardIsLearned
 from django.utils import timezone
-import datetime
+from django.conf import settings
 
 
 class QuizTests(APITestCase):
@@ -78,10 +78,10 @@ class QuizTests(APITestCase):
         self.assertIn('quiz_cards', response.data)
         self.assertEqual(len(response.data['quiz_cards']), 2)
 
-    def testQuizIsCreatedWithSetOfNoMoreThan5Cards(self):
+    def testQuizIsCreatedWithSetOfNoMoreThanNumberOfCardsInSettings(self):
         url = reverse('quiz-list')
 
-        for x in xrange(0, 10):
+        for x in xrange(0, settings.EZDICT['QUIZ']['CARDS_IN_QUIZ'] * 2):
             card = self.createCard(self.user, 'hello%d' % x)
             self.createCardToStudy(self.user, card)
 
@@ -89,7 +89,7 @@ class QuizTests(APITestCase):
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertIn('quiz_cards', response.data)
-        self.assertEqual(len(response.data['quiz_cards']), 5)
+        self.assertEqual(len(response.data['quiz_cards']), settings.EZDICT['QUIZ']['CARDS_IN_QUIZ'])
 
     def testOnlyCardsOfCurrentUserAreUsed(self):
         url = reverse('quiz-list')
@@ -206,7 +206,7 @@ class QuizTests(APITestCase):
         # complete test
         quizId = response.data['id']
         quiz = Quiz.objects.get(id__exact=quizId)
-        quiz.completed = timezone.now() - datetime.timedelta(weeks=2)
+        quiz.completed = timezone.now() - settings.EZDICT['QUIZ']['CARD_TIMEDELTA']
         quiz.save()
 
         # try to create test again
@@ -218,7 +218,7 @@ class QuizTests(APITestCase):
         # complete test again
         quizId = response.data['id']
         quiz = Quiz.objects.get(id__exact=quizId)
-        quiz.completed = timezone.now() - datetime.timedelta(weeks=2)
+        quiz.completed = timezone.now() - settings.EZDICT['QUIZ']['CARD_TIMEDELTA']
         quiz.save()
 
         # try to create test again
@@ -227,7 +227,7 @@ class QuizTests(APITestCase):
         self.assertIn('quiz_cards', response.data)
         self.assertEqual(len(response.data['quiz_cards']), 2)
 
-    def testCardsFromCompletedQuizzesAreTakenOnlyIfGtThanTwoWeeksPassed(self):
+    def testCardsFromCompletedQuizzesAreTakenOnlyIfGtThanTimedeltaFromSettingsIsPassed(self):
         url = reverse('quiz-list')
 
         # create 2 cards
@@ -265,7 +265,7 @@ class QuizTests(APITestCase):
             self.createCardToStudy(self.user, card)
 
         # change quiz completed date
-        quiz.completed = timezone.now() - datetime.timedelta(weeks=2)
+        quiz.completed = timezone.now() - settings.EZDICT['QUIZ']['CARD_TIMEDELTA']
         quiz.save()
 
         # create quiz (now 5 cards should be in quiz, 3 new, and 2 from the old quiz )
