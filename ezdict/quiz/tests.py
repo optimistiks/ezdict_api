@@ -230,8 +230,8 @@ class QuizTests(APITestCase):
     def testCardsFromCompletedQuizzesAreTakenOnlyIfGtThanTimedeltaFromSettingsIsPassed(self):
         url = reverse('quiz-list')
 
-        # create 2 cards
-        for x in xrange(0, 2):
+        # create some cards
+        for x in xrange(0, settings.EZDICT['QUIZ']['CARDS_IN_QUIZ'] / 2):
             card = self.createCard(self.user, 'hello%d' % x)
             self.createCardToStudy(self.user, card)
 
@@ -240,7 +240,7 @@ class QuizTests(APITestCase):
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertIn('quiz_cards', response.data)
-        self.assertEqual(len(response.data['quiz_cards']), 2)
+        self.assertEqual(len(response.data['quiz_cards']), settings.EZDICT['QUIZ']['CARDS_IN_QUIZ'] / 2)
 
         # complete quiz
         quizId = response.data['id']
@@ -248,19 +248,19 @@ class QuizTests(APITestCase):
         quiz.completed = timezone.now()
         quiz.save()
 
-        # create 2 more cards
-        for x in xrange(0, 2):
+        # create more cards
+        for x in xrange(0, settings.EZDICT['QUIZ']['CARDS_IN_QUIZ'] / 2):
             card = self.createCard(self.user, 'morehello%d' % x)
             self.createCardToStudy(self.user, card)
 
-        # create quiz (now only 2 cards should get to quiz because quiz with other 2 is recently completed )
+        # create quiz (now only half cards should get to quiz because quiz with other half is recently completed )
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertIn('quiz_cards', response.data)
-        self.assertEqual(len(response.data['quiz_cards']), 2)
+        self.assertEqual(len(response.data['quiz_cards']), settings.EZDICT['QUIZ']['CARDS_IN_QUIZ'] / 2)
 
-        # create 3 more cards
-        for x in xrange(0, 3):
+        # create more cards
+        for x in xrange(0, settings.EZDICT['QUIZ']['CARDS_IN_QUIZ'] / 2):
             card = self.createCard(self.user, 'andmorehello%d' % x)
             self.createCardToStudy(self.user, card)
 
@@ -268,11 +268,11 @@ class QuizTests(APITestCase):
         quiz.completed = timezone.now() - settings.EZDICT['QUIZ']['CARD_TIMEDELTA']
         quiz.save()
 
-        # create quiz (now 5 cards should be in quiz, 3 new, and 2 from the old quiz )
+        # create quiz (now max number of cards should be in quiz, some new, and some from the old quiz )
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertIn('quiz_cards', response.data)
-        self.assertEqual(len(response.data['quiz_cards']), 5)
+        self.assertEqual(len(response.data['quiz_cards']), (settings.EZDICT['QUIZ']['CARDS_IN_QUIZ'] / 2) * 2)
 
     def testQuizIsCompletedAndAnswersAreMarkedAsCorrectWhenPostingASetOfCorrectAnswers(self):
         url = reverse('quiz_answer-list')
