@@ -1,23 +1,25 @@
-from translators import YA_DICT_URL, YA_DICT_KEY
-import goslate
+from django.conf import settings
 import requests
+from translator import translator
 
 
-def getFlatMeanings(text, targetLang):
-    gs = goslate.Goslate()
-    sourceLang = gs.detect(text)
-    translation = gs.translate(text, targetLang, sourceLang)
+def get_flat_meanings(text, target_lang):
+    source_lang = translator.detect_language(text)
+    translation = translator.translate(text, target_lang, source_lang)
 
-    dictDir = sourceLang + '-' + targetLang
+    dict_dir = source_lang + '-' + target_lang
     response = requests.get(
-        (YA_DICT_URL + '&lang=%(dictDir)s&text=%(text)s') % {'yaDictKey': YA_DICT_KEY, 'dictDir': dictDir,
-                                                             'text': text})
-    yaDict = response.json()
+        (settings.YA_TRANSLATOR['URL'] + '&lang=%(dictDir)s&text=%(text)s') % {
+            'yaDictKey': settings.YA_TRANSLATOR['KEY'],
+            'dictDir': dict_dir,
+            'text': text
+        })
+    ya_dict = response.json()
 
     meanings = set()
     meanings.add(translation.lower())
-    if len(yaDict['def']):
-        for yaDef in yaDict['def']:
+    if len(ya_dict['def']):
+        for yaDef in ya_dict['def']:
             for yaDefTr in yaDef['tr']:
                 meaning = yaDefTr['text'].lower()
                 meanings.add(meaning)

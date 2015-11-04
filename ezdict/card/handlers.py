@@ -1,10 +1,7 @@
-from django.db.models.signals import pre_save, post_save
+from django.db.models.signals import post_save
 from django.dispatch import receiver
-from models import CardIsLearned, CardToStudy
-from ezdict.card.models import Card, CardToStudy, CardMeaning
-from ezdict.translation_history.models import WARN_LEVEL_5
-from ezdict.user_profile.models import UserProfile
-from ezdict.translation.flat_meanings import getFlatMeanings
+from models import CardIsLearned
+from ezdict.card.models import CardToStudy
 from django.db import transaction
 
 

@@ -4,7 +4,7 @@ from models import TranslationHistory
 from ezdict.card.models import Card, CardToStudy, CardMeaning
 from ezdict.translation_history.models import WARN_LEVEL_5
 from ezdict.user_profile.models import UserProfile
-from ezdict.translation.flat_meanings import getFlatMeanings
+from ezdict.translation.flat_meanings import get_flat_meanings
 from django.db import transaction
 
 
@@ -20,7 +20,7 @@ def addToLearning(sender, instance, **kwargs):
             card.user = history.user
             card.save()
             profile = UserProfile().findByUser(card.user)
-            meanings = getFlatMeanings(card.text, profile.target_lang)
+            meanings = get_flat_meanings(card.text, profile.target_lang)
             for meaning in meanings:
                 cardMeaning = CardMeaning()
                 cardMeaning.text = meaning
